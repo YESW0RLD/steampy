@@ -9,7 +9,7 @@ import requests
 
 from steampy import guard
 from steampy.confirmation import ConfirmationExecutor
-from steampy.exceptions import SevenDaysHoldException, ApiException, TooManyRequests
+from steampy.exceptions import SevenDaysHoldException, ApiException
 from steampy.login import LoginExecutor, InvalidCredentials
 from steampy.market import SteamMarket
 from steampy.models import Asset, TradeOfferState, SteamUrl, GameOptions
@@ -163,18 +163,14 @@ class SteamClient:
         url = '/'.join((SteamUrl.COMMUNITY_URL, 'inventory', partner_steam_id, game.app_id, game.context_id))
         params = {'l': 'english', 'count': count}
 
-        full_response = self._session.get(url, params=params)
-        response_dict = full_response.json()
-        if full_response.status_code == 429:
-            raise TooManyRequests('Too many requests, try again later.')
-
+        response_dict = self._session.get(url, params=params).json()
         if response_dict is None or response_dict.get('success') != 1:
             raise ApiException('Success value should be 1.')
 
         return merge_items_with_descriptions_from_inventory(response_dict, game) if merge else response_dict
 
     def _get_session_id(self) -> str:
-        return self._session.cookies.get_dict()['sessionid']
+        return self._session.cookies.get_dict("steamcommunity.com")
 
     def get_trade_offers_summary(self) -> dict:
         params = {'key': self._api_key}
@@ -409,6 +405,9 @@ class SteamClient:
     # If convert_to_decimal = False, the price will be returned WITHOUT a decimal point.
     def get_wallet_balance(self, convert_to_decimal: bool = True, on_hold: bool = False) -> Union[str, Decimal]:
         response = self._session.get(f'{SteamUrl.COMMUNITY_URL}/market')
+        if response.status_code != HTTPStatus.OK:
+            raise ApiException(f'Unable to get wallet balance. HTTP code: {response.status_code}')
+
         wallet_info_match = re.search(r'var g_rgWalletInfo = (.*?);', response.text)
         if wallet_info_match:
             balance_dict_str = wallet_info_match.group(1)
