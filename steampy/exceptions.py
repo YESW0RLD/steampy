@@ -12,12 +12,13 @@ class ApiException(Exception):
         self.error_message = {
             3: "Lost connection",
             8: "Incorrect parameter",
-            15: "Access denied: Can you use market?",
-            20: "Service unavailable: The requested service is currently unavailable",
-            25: "Limit exceeded",
-            29: "Duplicate request: The action has already occurred in the past, ignored this time",
-            42: "NoMatch: Couldn't find item with this name",
-            84: "RateLimitExceeded: Temporary rate limit exceeded, try again later"
+            15: "Access denied. Are you allowed to use market?",
+            20: "Service unavailable. The requested service is currently unavailable.",
+            25: "Limit exceeded. Too much of a good thing.",
+            29: "Duplicate request. The action has already occurred in the past, ignored this time.",
+            40: "Blocked. Action blocked due to the rate limit.",
+            42: "No Match. Nothing matching the request.",
+            84: "RateLimitExceeded. Temporary rate limit exceeded, try again later."
         }
 
     def __str__(self):
@@ -38,6 +39,7 @@ class CaptchaRequired(Exception):
 
 class ConfirmationExpected(Exception):
     pass
+
 
 class ProxyConnectionError(Exception):
     pass
